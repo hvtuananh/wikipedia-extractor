@@ -1,6 +1,10 @@
 Wikipedia Extractor
 ===================
 
+Changelog
+------------
+Sep 18, 2014: [Tuan-Anh] Added option to extract articles with geolocation only.
+
 Introduction
 ------------
 
