@@ -18,8 +18,8 @@ import datetime
 
 p = re.compile(r'[^a-z0-9#]+', re.I)
 p_id = re.compile(r'id=(\d+)')
-p_geo = re.compile(r'{{(coord|coorde|coordinate)s?\s?\|(.+?)\|([A-Z])\s*?\|(.+?)\|([A-Z])\s*?(\|?}}|\|(.+?)}})', re.I)
-p_geo_a = re.compile(r'{{(coord|coorde|coordinate)s?\s?\|([^\|]+?)\|+?([^\|]+?)(\|?}}|\|+?(.+?)}})', re.I)
+p_geo = re.compile(r'{{(coord|coorde|coordinate|coordinite)s?\s?\|((name|text|format)=.+?\|)?(.+?)\|\s*?([A-Z])\s*?\|(.+?)\|\s*?([A-Z])\s*?(\|?}}|\|(.+?)}})', re.I)
+p_geo_a = re.compile(r'{{(coord|coorde|coordinate|coordinite)s?\s?\|((name|text|format)=.+?\|)?([^\|]+?)\|+?([^\|]+?)(\|?}}|\|+?(.+?)}})', re.I)
 
 def text_filter(word):
     word = unicode(word)
@@ -78,11 +78,11 @@ def extract_geo(text):
     if not m1:
         m2 = p_geo_a.search(text)
     if m1:
-        geo.append(convert_arc(m1.group(2), m1.group(3).strip()))
-        geo.append(convert_arc(m1.group(4), m1.group(5).strip()))
+        geo.append(convert_arc(m1.group(4).strip(), m1.group(5).strip()))
+        geo.append(convert_arc(m1.group(6).strip(), m1.group(7).strip()))
     elif m2:
-        geo.append(convert_arc(m2.group(2)))
-        geo.append(convert_arc(m2.group(3)))
+        geo.append(convert_arc(m2.group(4).strip()))
+        geo.append(convert_arc(m2.group(5).strip()))
     else:
         pass
         # print "Cannot get correct geo location!"
@@ -104,7 +104,7 @@ def process_data(input):
             geo = extract_geo(line)
         elif '</doc>' in line:
             # finish an article, need to write to stdout
-            if len(geo) == 0 or geo[0] is None:
+            if len(geo) == 0 or geo[0] is None or geo[1] is None:
                 continue
             results = []
             results.append(str(id))
