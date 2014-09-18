@@ -8,6 +8,9 @@
 # =============================================================================
 #  Copyright (c) 2014. Tuan-Anh Hoang-Vu (tuananh@nyu.edu).
 # =============================================================================
+#  References
+#  http://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Dates_and_numbers#Geographical_coordinates
+# =============================================================================
 
 import sys
 import re
