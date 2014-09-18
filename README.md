@@ -103,6 +103,7 @@ Options:
      -o, --output= dir     : place output files in specified directory (default
                              current)
      -l, --link            : preserve links
+     -g, --geo             : only extract pages with geo information
      --help                : display this help and exit
 
 Example of Use
