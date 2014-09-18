@@ -18,8 +18,8 @@ import datetime
 
 p = re.compile(r'[^a-z0-9#]+', re.I)
 p_id = re.compile(r'id=(\d+)')
-p_geo = re.compile(r'{{coords?\s?\|(.+?)\|([A-Z])\|(.+?)\|([A-Z])(\|?}}|\|(.+?)}})', re.I)
-p_geo_a = re.compile(r'{{coords?\s?\|([^\|]+?)\|([^\|]+?)(\|?}}|\|(.+?)}})', re.I)
+p_geo = re.compile(r'{{(coord|coorde|coordinate)s?\s?\|(.+?)\|([A-Z])\s*?\|(.+?)\|([A-Z])\s*?(\|?}}|\|(.+?)}})', re.I)
+p_geo_a = re.compile(r'{{(coord|coorde|coordinate)s?\s?\|([^\|]+?)\|+?([^\|]+?)(\|?}}|\|+?(.+?)}})', re.I)
 
 def text_filter(word):
     word = unicode(word)
@@ -70,7 +70,7 @@ def convert_arc(text, direction = None):
         
 def extract_geo(text):
     # test malformed cases
-    # if 'coord missing' in text.lower() or 'coords missing' in text.lower() or 'coords||' in text.lower() or 'coord||' in text.lower() or 'coord unknown' in text.lower() or 'coord|{{#expr' in text.lower() or '{{coord|}}' in text.lower() or 'coord ' in text.lower() or '{{coord|display' in text.lower() or '{{coorddisplay' in text.lower() or '{{coord|21.0367}}' in text.lower():
+    # if 'coord missing' in text.lower() or 'coords missing' in text.lower() or 'coords||' in text.lower() or 'coord||' in text.lower() or 'coord unknown' in text.lower() or 'coord|{{#expr' in text.lower() or '{{coord|}}' in text.lower() or 'coord ' in text.lower() or '{{coord|display' in text.lower() or '{{coorddisplay' in text.lower() or '{{coord|21.0367}}' in text.lower() or 'coord41' in text.lower() or '{{coordinates missing' in text.lower() or '{{coordinates|}}' in text.lower() or '{{coord}}' in text.lower() or '{{coordinate}}' in text.lower() or '{{coordinate/dms|' in text.lower():
     #     return None
     # print text.strip()
     geo = []
@@ -78,11 +78,11 @@ def extract_geo(text):
     if not m1:
         m2 = p_geo_a.search(text)
     if m1:
-        geo.append(convert_arc(m1.group(1), m1.group(2)))
-        geo.append(convert_arc(m1.group(3), m1.group(4)))
+        geo.append(convert_arc(m1.group(2), m1.group(3).strip()))
+        geo.append(convert_arc(m1.group(4), m1.group(5).strip()))
     elif m2:
-        geo.append(convert_arc(m2.group(1)))
         geo.append(convert_arc(m2.group(2)))
+        geo.append(convert_arc(m2.group(3)))
     else:
         pass
         # print "Cannot get correct geo location!"
