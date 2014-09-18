@@ -51,6 +51,7 @@ Options:
   -o, --output= dir     : place output files in specified directory (default
                           current)
   -s, --sections	: preserve sections
+  -g, --geo             : only extract pages with geo information
   -h, --help            : display this help and exit
 """
 
@@ -129,10 +130,35 @@ def WikiDocument(out, id, title, text):
     for line in compact(text):
         print >> out, line.encode('utf-8')
     print >> out, footer
+    
+def WikiDocumentGeo(out, id, title, text):
+    url = get_url(id, prefix)
+    geo = get_geo(text)
+    if not geo:
+        return
+    header = '<doc id="%s" url="%s" title="%s" geo="%s">\n' % (id, url, title, geo)
+    # Separate header from text with a newline.
+    header += title + '\n'
+    header = header.encode('utf-8')
+    text = clean(text)
+    footer = "\n</doc>"
+    out.reserve(len(header) + len(text) + len(footer))
+    print >> out, header
+    for line in compact(text):
+        print >> out, line.encode('utf-8')
+    print >> out, footer
 
 def get_url(id, prefix):
     return "%s?curid=%s" % (prefix, id)
 
+geo_re = re.compile(r'{{coord.+?}}')
+def get_geo(text):
+    matches = geo_re.search(text)
+    if matches:
+        return matches.group(0)
+    else:
+        return None
+        
 #------------------------------------------------------------------------------
 
 selfClosingTags = [ 'br', 'hr', 'nobr', 'ref', 'references' ]
@@ -509,10 +535,11 @@ def handle_unicode(entity):
 #------------------------------------------------------------------------------
 
 class OutputSplitter:
-    def __init__(self, compress, max_file_size, path_name):
+    def __init__(self, compress, max_file_size, path_name, keep_geo = False):
         self.dir_index = 0
         self.file_index = -1
         self.compress = compress
+        self.keep_geo = keep_geo
         self.max_file_size = max_file_size
         self.path_name = path_name
         self.out_file = self.open_next_file()
@@ -596,7 +623,10 @@ def process_data(input, output):
                     not redirect:
                 print id, title.encode('utf-8')
                 sys.stdout.flush()
-                WikiDocument(output, id, title, ''.join(page))
+                if not output.keep_geo:
+                    WikiDocument(output, id, title, ''.join(page))
+                else:
+                    WikiDocumentGeo(output, id, title, ''.join(page))
             id = None
             page = []
         elif tag == 'base':
@@ -622,13 +652,14 @@ def main():
     script_name = os.path.basename(sys.argv[0])
 
     try:
-        long_opts = ['help', 'compress', 'bytes=', 'basename=', 'links', 'ns=', 'sections', 'output=', 'version']
-        opts, args = getopt.gnu_getopt(sys.argv[1:], 'cb:hln:o:B:sv', long_opts)
+        long_opts = ['help', 'compress', 'geo', 'bytes=', 'basename=', 'links', 'ns=', 'sections', 'output=', 'version']
+        opts, args = getopt.gnu_getopt(sys.argv[1:], 'cb:hln:o:B:sv:g', long_opts)
     except getopt.GetoptError:
         show_usage(script_name)
         sys.exit(1)
 
     compress = False
+    keepGeo = False
     file_size = 500 * 1024
     output_dir = '.'
 
@@ -644,6 +675,8 @@ def main():
             keepSections = True
         elif opt in ('-B', '--base'):
             prefix = arg
+        elif opt in ('-g', '--geo'):
+            keepGeo = True
         elif opt in ('-b', '--bytes'):
             try:
                 if arg[-1] in 'kK':
@@ -679,7 +712,7 @@ def main():
     if not keepLinks:
         ignoreTag('a')
 
-    output_splitter = OutputSplitter(compress, file_size, output_dir)
+    output_splitter = OutputSplitter(compress, file_size, output_dir, keepGeo)
     process_data(sys.stdin, output_splitter)
     output_splitter.close()
 
