@@ -151,7 +151,7 @@ def WikiDocumentGeo(out, id, title, text):
 def get_url(id, prefix):
     return "%s?curid=%s" % (prefix, id)
 
-geo_re = re.compile(r'{{coord.+?}}')
+geo_re = re.compile(r'{{coord.+?}}', re.I)
 def get_geo(text):
     matches = geo_re.search(text)
     if matches:
